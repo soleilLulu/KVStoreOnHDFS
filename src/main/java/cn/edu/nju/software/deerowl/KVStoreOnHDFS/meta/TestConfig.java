@@ -1,4 +1,4 @@
-package cn.edu.nju.software.deerowl.KVStoreOnHDFS;
+package cn.edu.nju.software.deerowl.KVStoreOnHDFS.meta;
 
 /**
  * Created by rale on 11/8/17.

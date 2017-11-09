@@ -1,4 +1,4 @@
-package cn.edu.nju.software.deerowl.KVStoreOnHDFS;
+package cn.edu.nju.software.deerowl.KVStoreOnHDFS.meta;
 
 import cn.helium.kvstore.common.KvStoreConfig;
 
