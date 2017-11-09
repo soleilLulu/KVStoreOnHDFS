@@ -70,3 +70,9 @@ local.properties
 .cache-main
 .scala_dependencies
 .worksheet
+
+#Intellij IDE specific
+.idea
+*.iml
+target/
+*.DS_Store
