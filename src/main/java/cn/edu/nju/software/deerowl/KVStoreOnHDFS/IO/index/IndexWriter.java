@@ -2,8 +2,6 @@ package cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.index;
 
 import cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.Writer;
 import cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.model.Key;
-import cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.model.Value;
-import cn.edu.nju.software.deerowl.KVStoreOnHDFS.meta.TestConfig;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
