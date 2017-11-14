@@ -4,9 +4,14 @@ import java.io.Serializable;
 import java.util.Map;
 
 public class KvPair implements Serializable{
+    private static final long serialVersionUID = 5224759965392034957L;
     private String key;
     private Map<String,String> value;
 
+    public KvPair(String key, Map<String, String> value){
+        this.setKey(key);
+        this.setValue(value);
+    }
 
     public Map<String, String> getValue() {
         return value;
@@ -22,5 +27,10 @@ public class KvPair implements Serializable{
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    @Override
+    public String toString(){
+        return key + value;
     }
 }
