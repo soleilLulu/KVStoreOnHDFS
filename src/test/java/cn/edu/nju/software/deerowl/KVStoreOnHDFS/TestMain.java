@@ -9,7 +9,9 @@ import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by rale on 11/12/17.
@@ -17,32 +19,28 @@ import java.util.Map;
 public class TestMain {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
 
-//        Configuration configuration = new Configuration();
-//        configuration.set("fs.default.name", "hdfs://localhost:8020");
-//        DBManager dbManager = new DBManager(configuration);
-//        for (int i = 0 ; i<100 ; i++){
-//            Map<String, String> value = new HashMap<>();
-//            value.put("hello", "world");
-//            String key = "test" + i;
-//            dbManager.write(key, value, true);
+        Configuration configuration = new Configuration();
+        configuration.set("fs.default.name", "hdfs://localhost:8020");
+        DBManager dbManager = new DBManager(configuration);
+
+        TreeMap<String, Map<String, String >> map = new TreeMap<>(autoGenerate(321));
+//        for (Map.Entry<String, Map<String, String>> entry : map.entrySet()){
+//            dbManager.write(entry.getKey(), entry.getValue(), true);
 //        }
-//
-//        LogHelper logHelper = new LogHelper(TestConfig.MAX_LOG);
-//        System.out.println(logHelper.readLog().size());
 
-        //测试生成key value
-        TestMain test = new TestMain();
-        test.autoGenerate();
+        for (Map.Entry<String, Map<String, String>> entry : map.entrySet()){
+            System.out.println(entry.getKey() + " : " + dbManager.read(entry.getKey()));
+        }
+//        dbManager.read("rale1");
 
-//        FileReader fileReader = new FileReader(configuration, new Path("/data/3b16b45a-5d05-4068-83b0-ad5c2f153a31.seq"));
-//        System.out.println(fileReader.readAll().size());
+
     }
 
-    public Map<String, Map<String, String>> autoGenerate(){
+    public static Map<String, Map<String, String>> autoGenerate(int count){
         Map<String, Map<String, String>> map = new HashMap<>();
         String key = "rale";
 
-        for(int i=0;i<100;i++){
+        for(int i=0;i<count;i++){
             String temp = key+i;
             Map<String,String> value = new HashMap<>();
             value.put("age" + i,"18");

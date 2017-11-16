@@ -26,6 +26,19 @@ public class FileReader implements Reader<Key, Value> {
         reader = getReader(configuration, readFrom);
     }
 
+    public Value findFrom(long pos, Key key) throws IOException {
+        ensureReaderOpen();
+        reader.seek(pos);
+        Key tempKey = new Key();
+        Value tempValue = new Value();
+        while(reader.next(tempKey, tempValue)){
+            if (tempKey.compareTo(key) == 0){
+                return tempValue;
+            }
+        }
+        return null;
+    }
+
     @Override
     public Map<Key, Value> readAll() throws IOException {
         ensureReaderOpen();

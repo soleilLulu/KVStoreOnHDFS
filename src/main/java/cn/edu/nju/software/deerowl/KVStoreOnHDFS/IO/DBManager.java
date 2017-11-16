@@ -3,6 +3,7 @@ package cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO;
 import cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.hdfs.Cache;
 import cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.hdfs.FileReader;
 import cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.hdfs.FileWriter;
+import cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.index.IndexReader;
 import cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.index.IndexWriter;
 import cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.index.Range;
 import cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.index.RangeManager;
@@ -11,6 +12,7 @@ import cn.edu.nju.software.deerowl.KVStoreOnHDFS.IO.model.Value;
 import cn.edu.nju.software.deerowl.KVStoreOnHDFS.log.KvPair;
 import cn.edu.nju.software.deerowl.KVStoreOnHDFS.log.LogHelper;
 import cn.edu.nju.software.deerowl.KVStoreOnHDFS.meta.TestConfig;
+import cn.helium.kvstore.rpc.RpcServer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -38,6 +40,7 @@ public class DBManager {
     private String DATA_SUFFIX = TestConfig.DATA_SUFFIX;
     private String INDEX_SUFFIX = TestConfig.INDEX_SUFFIX;
 
+    private int INDEX_INTERVAL = TestConfig.INDEX_INTERVAL;
     private Cache<Key, Value> cache;
     private Configuration configuration;
     private RangeManager rangeManager;
@@ -63,7 +66,7 @@ public class DBManager {
      * @param key
      * @param value
      */
-    public void write(String key, Map<String, String> value, boolean writeLog) throws IOException {
+    public synchronized void write(String key, Map<String, String> value, boolean writeLog) throws IOException {
         Key key1 = new Key(key);
         Value value1 = new Value(value);
         cache.add(key1, value1);
@@ -85,10 +88,17 @@ public class DBManager {
                     try {
                         FileWriter fileWriter = new FileWriter(configuration, dataPath);
                         IndexWriter indexWriter = new IndexWriter(configuration, indexPath);
+                        int count = 0;
                         for (Map.Entry<Key, Value> entry : copyCache.entrySet()){
+                            if (count % INDEX_INTERVAL == 0){
+                                indexWriter.write(entry.getKey(), new LongWritable(fileWriter.length()));
+                                count = 0;
+                            }
                             fileWriter.write(entry.getKey(), entry.getValue());
-                            indexWriter.write(entry.getKey(), new LongWritable(fileWriter.length()));
+                            count++;
                         }
+                        fileWriter.close();
+                        indexWriter.close();
                         rangeManager.write(new Range(copyCache.firstKey(), copyCache.lastKey(), new Text(indexPath.toString())));
                         //@Todo 向所有主机发送一条通信 说明二级索引更新了
                         logHelper.deleteLog(flushPath);
@@ -102,21 +112,36 @@ public class DBManager {
     }
 
 
-    public Map<String, String> read(String key){
+    public Map<String, String> read(String key) throws IOException {
         Key key1 = new Key(key);
         Value result  = null;
         if ((result = cache.find(key1)) != null){
             return result.getMap();
+        }else{
+            List<Range> ranges = rangeManager.findRangeContainsKey(key1);
+            if (ranges != null){
+                for (Range range : ranges){
+                    String indexPath = range.getPath().toString();
+                    IndexReader indexReader = new IndexReader(configuration, new Path(indexPath));
+                    long pos = indexReader.getPosition(key1);
+                    indexReader.close();
+                    String dataPath = indexPath.substring(0, indexPath.lastIndexOf(".")) + DATA_SUFFIX;
+                    FileReader fileReader = new FileReader(configuration, new Path(dataPath));
+
+                    result = fileReader.findFrom(pos, key1);
+                    if (result != null) break;
+                }
+            }
         }
         //从邻居获得
         //检查二级索引
         //检查一级索引
         //从文件中获取
-        return new HashMap<>();
+        return result==null ? null : result.getMap();
     }
 
     private String generateFileName(){
-        return UUID.randomUUID().toString();
+        return UUID.randomUUID().toString() + RpcServer.getRpcServerId();
     }
 
     private void mkdirs() throws IOException {

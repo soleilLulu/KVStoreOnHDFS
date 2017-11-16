@@ -35,7 +35,7 @@ public class FileWriter implements Writer<Key, Value>{
      * @param value 序列化值
      */
     @Override
-    public void write(Key key, Value value) {
+    public synchronized void write(Key key, Value value) {
         try {
             ensureOpen();
             writer.append(key, value);
@@ -51,7 +51,7 @@ public class FileWriter implements Writer<Key, Value>{
      * @throws IOException
      */
     @Override
-    public void write(Map<Key, Value> map) throws IOException {
+    public synchronized void write(Map<Key, Value> map) throws IOException {
         ensureOpen();
         Key key = null;
         Value value = null;

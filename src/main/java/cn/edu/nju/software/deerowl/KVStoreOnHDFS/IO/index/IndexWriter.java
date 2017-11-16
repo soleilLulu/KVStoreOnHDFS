@@ -33,13 +33,13 @@ public class IndexWriter implements Writer<Key, LongWritable>{
 
 
     @Override
-    public void write(Key key, LongWritable value) throws IOException {
+    public synchronized void write(Key key, LongWritable value) throws IOException {
         ensureOpen();
         writer.append(key, value);
     }
 
     @Override
-    public void write(Map<Key, LongWritable> map) throws IOException {
+    public synchronized void write(Map<Key, LongWritable> map) throws IOException {
         ensureOpen();
         for (Map.Entry<Key, LongWritable> entry : map.entrySet()){
             write(entry.getKey(), entry.getValue());

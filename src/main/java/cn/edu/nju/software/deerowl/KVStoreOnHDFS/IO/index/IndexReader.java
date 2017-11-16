@@ -38,7 +38,7 @@ public class IndexReader implements Reader<Key, LongWritable>{
      */
     public long getPosition(Key key) throws IOException {
         TreeMap<Key, LongWritable> sortedMap = new TreeMap<>(readAll());
-        long position = 0;
+        long position = 1;
         for (Map.Entry<Key, LongWritable> entry : sortedMap.entrySet()){
             if (entry.getKey().compareTo(key) == 0){
                 return entry.getValue().get();
